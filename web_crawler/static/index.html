@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Web Crawler</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin-bottom: 10px; padding: 8px; }
+    #results { margin-top: 20px; }
+  </style>
+</head>
+<body>
+<h1>Simple Web Crawler</h1>
+<label for="urls">Enter URLs (comma-separated):</label><br>
+<input type="text" id="urls" placeholder="http://example.com, http://another-site.com"><br>
+<button onclick="startCrawl()">Start Crawl</button>
+
+<div id="status"></div>
+<div id="results"></div>
+
+<script>
+  async function startCrawl() {
+    const urls = document.getElementById('urls').value;
+
+    if (!urls) {
+      alert("Please enter some URLs!");
+      return;
+    }
+
+    // Show loading status
+    document.getElementById('status').innerText = "Crawl in progress...";
+
+    // Send the URLs to the backend
+    const response = await fetch('/start_crawl', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls: urls })
+    });
+
+    const data = await response.text();
+    document.getElementById('status').innerText = data;
+
+    // Fetch results after crawl is done
+    setTimeout(fetchResults, 1000); // Wait for the crawl to complete
+  }
+
+  async function fetchResults() {
+    const response = await fetch('/results');
+    const data = await response.json();
+
+    // Display results
+    const resultsDiv = document.getElementById('results');
+    if (data.results && data.results.length > 0) {
+      resultsDiv.innerHTML = "<ul>" + data.results.map(result => `<li>${result.url}: ${result.title}</li>`).join('') + "</ul>";
+    } else {
+      resultsDiv.innerHTML = "No results yet.";
+    }
+  }
+</script>
+</body>
+</html>
